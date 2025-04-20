@@ -31,6 +31,21 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+  mysql-msreels:
+    extends:
+      file: ./docker/mysql.yml
+      service: mysql
+    volumes:
+      - ./src/data/mysql-msreels:/var/lib/mysql # Mounts host's `src/data` to MySQL's data directory
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: msreels
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   nginx:
     image: nginx:latest
@@ -50,13 +65,14 @@ services:
         condition: service_started
 
   apigateway:
-    image: shegga/apigateway
+    image: shegga/apigateway:latest
     ports:
       - "9080:8080"
     environment:
       - JHIPSTER_APP_NAME=ApiGateway
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
-      - SPRING_PROFILES_ACTIVE=dev,api-docs
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_BOOT_RUN_PROFILES=prod
       - SPRING_CLOUD_CONSUL_ENABLED=true
       - SPRING_CLOUD_CONSUL_HOST=consul.appf4.io.vn
       - SPRING_CLOUD_CONSUL_PORT=443
@@ -75,8 +91,8 @@ services:
       - SPRING_CLOUD_CONSUL_TLS_SKIP_VERIFY=true
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=https://keycloak.appf4.io.vn/realms/jhipster
       - JHIPSTER_SECURITY_OAUTH2_AUTH_SERVER_URL=https://keycloak.appf4.io.vn
-      - SPRING_R2DBC_URL=r2dbc:mysql://mysql-apigateway:3306/apigateway
-      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-apigateway:3306/apigateway?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
+      - SPRING_R2DBC_URL=r2dbc:mysql://microservices.appf4.io.vn:3306/apigateway
+      - SPRING_LIQUIBASE_URL=jdbc:mysql://microservices.appf4.io.vn:3306/apigateway?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
       - JHIPSTER_CACHE_REDIS_SERVER=redis://:Hiendepzaikhoaitonhatxom@appf4.io.vn:6379
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=appf4.io.vn:9092
       - SPRING_KAFKA_SECURITY_PROTOCOL=SSL
