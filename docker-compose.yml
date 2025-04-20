@@ -1,23 +1,5 @@
 name: dev
-networks:
-  f4_network:
-    driver: bridge
 services:
-  mysql-keycloak:
-    extends:
-      file: ./docker/mysql.yml
-      service: mysql
-    volumes:
-      - ./src/data/mysql-keycloak:/var/lib/mysql # Mounts host's `src/data` to MySQL's data directory
-    environment:
-      MYSQL_DATABASE: keycloak
-    healthcheck:
-      test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-    networks:
-      - f4_network
   mysql-apigateway:
     extends:
       file: ./docker/mysql.yml
@@ -33,14 +15,15 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
-    networks:
-      - f4_network
+
   mysql-msmedia:
     extends:
       file: ./docker/mysql.yml
       service: mysql
     volumes:
       - ./src/data/mysql-msmedia:/var/lib/mysql # Mounts host's `src/data` to MySQL's data directory
+    ports:
+      - "3307:3306"
     environment:
       MYSQL_DATABASE: msmedia
     healthcheck:
@@ -48,208 +31,108 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
-    networks:
-      - f4_network
-  redis:
-    image: redis:7.4.2 # Same version as prod
-    ports:
-      - "6379:6379"
-    networks:
-      - f4_network
-  consul:
-    image: bitnami/consul:1.20.2 # Ensure compatibility with prod
-    container_name: consul
-    # network_mode: "host"  # Allows services outside Docker to register
-    # environment:
-    # - CONSUL_BIND_INTERFACE=0.0.0.0
-    # - CONSUL_CLIENT_INTERFACE=eth0
-    # - CONSUL_ALLOW_PRIVILEGED_PORTS=true
-    restart: unless-stopped
-    command: consul agent -dev -ui -client 0.0.0.0 -log-level=INFO
-    networks:
-      - f4_network
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.1.1
-    command:
-      - "start-dev"
-      - "--import-realm"
-      - "--proxy=edge"
-      - "--hostname=https://keycloak.appf4.io.vn"
-      - "--hostname-admin=https://keycloak.appf4.io.vn"
-      - "--hostname-strict=true"
-    volumes:
-      - ./realm-config:/opt/keycloak/data/import
-      - ./realm-config/keycloak-health-check.sh:/opt/keycloak/health-check.sh
-    environment:
-      - KC_DB=mysql
-      - KC_DB_URL=jdbc:mysql://mysql-keycloak:3306/keycloak
-      - KC_DB_USERNAME=root
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_FEATURES=scripts
-      - KC_HTTP_PORT=9080
-      - KC_HTTPS_PORT=9443
-      - KC_HEALTH_ENABLED=true
-      - KC_HTTP_MANAGEMENT_PORT=9990
-      - KC_PROXY=edge
-      - KC_HOSTNAME=keycloak.appf4.io.vn
-      - KC_HOSTNAME_PORT=443
-      - KC_HOSTNAME_URL=https://keycloak.appf4.io.vn
-      - KC_HOSTNAME_ADMIN_URL=https://keycloak.appf4.io.vn
-      - KC_FRONTEND_URL=https://keycloak.appf4.io.vn
-      - KC_HOSTNAME_STRICT=true
-      - KC_HOSTNAME_STRICT_HTTPS=true
-      - KC_HTTP_ENABLED=true
-    # remove the "127.0.0.1:" prefix
-    healthcheck:
-      test: 'bash /opt/keycloak/health-check.sh'
-      interval: 5s
-      timeout: 5s
-      # Increased retries due to slow Keycloak startup in GitHub Actions using MacOS
-      retries: 50
-      start_period: 10s
-    labels:
-      org.springframework.boot.ignore: true
-    depends_on:
-      mysql-keycloak:
-        condition: service_healthy # Wait for MySQL to be healthy
-    networks:
-      - f4_network
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - f4_network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
-    ports:
-      - "9092:9092" # SSL External
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,EXTERNAL:SSL
-      KAFKA_ADVERTISED_LISTENERS: DOCKER://kafka:29092,EXTERNAL://appf4.io.vn:9092
-      KAFKA_LISTENERS: DOCKER://:29092,EXTERNAL://:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
-      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.keystore.jks
-      KAFKA_SSL_KEYSTORE_PASSWORD: f4security
-      KAFKA_SSL_KEY_PASSWORD: f4security
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
-      KAFKA_SSL_TRUSTSTORE_PASSWORD: f4security
-      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-    volumes:
-      - ./kafka/ssl:/etc/kafka/secrets
-    depends_on:
-      - zookeeper
-    networks:
-      - f4_network
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest
-    container_name: kafdrop
-    ports:
-      - "9000:9000" # Kafdrop UI on port 9000
-    environment:
-      KAFKA_BROKERCONNECT: kafka:29092
-      JVM_OPTS: "-Xms256M -Xmx512M"
-      SERVER_SERVLET_CONTEXTPATH: "/"
-    depends_on:
-      - kafka
-    networks:
-      - f4_network
 
   nginx:
-    build: ./script/
+    image: nginx:latest
     container_name: nginx
     restart: unless-stopped
-    depends_on:
-      keycloak:
-        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
-    entrypoint: [ "/bin/sh", "-c", "rm -f /etc/nginx/conf.d/apigateway.conf && apt-get update && apt-get install -y curl && chmod +x /usr/local/bin/wait-for-apigateway.sh && /usr/local/bin/wait-for-apigateway.sh & nginx -g 'daemon off;'" ]
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/letsencrypt:/etc/letsencrypt
       - ./nginx/www:/var/www/html
       - ./nginx/log:/var/log/nginx
-      - ./lua/validate_token.lua:/etc/nginx/validate_token.lua # Mount the Lua script
-      - ./lua:/etc/nginx/lua
-      - ./script/wait-for-apigateway.sh:/usr/local/bin/wait-for-apigateway.sh
-    command: >
-      /bin/sh -c "opm get zmartzone/lua-resty-openidc && nginx -g 'daemon off;'"
-    networks:
-      - f4_network
+    depends_on:
+      apigateway:
+        condition: service_started
+
   apigateway:
     image: shegga/apigateway
+    ports:
+      - "9080:8080"
     environment:
-      - JHIPSTER_APP_NAME=ApiGatewayApp
+      - JHIPSTER_APP_NAME=ApiGateway
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
-      - SPRING_R2DBC_URL=r2dbc:mysql://mysql-apigateway:3306/apigateway
-      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-apigateway:3306/apigateway?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
-      - JHIPSTER_CACHE_REDIS_SERVER=redis://redis:6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_CLOUD_CONSUL_ENABLED=true
+      - SPRING_CLOUD_CONSUL_HOST=consul.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_PORT=443
+      - SPRING_CLOUD_CONSUL_SCHEME=https
+      - SPRING_CLOUD_CONSUL_DISCOVERY_ENABLED=true
+      - SPRING_CLOUD_CONSUL_CONFIG_ENABLED=true
+      - SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED=true
+      - SPRING_CLOUD_CONSUL_DISCOVERY_SERVICE_NAME=apigateway
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONSUL_DISCOVERY_IP_ADDRESS=microservices.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PORT=${SPRING_CLOUD_CONSUL_DISCOVERY_PORT:-9080}
+      - SPRING_CLOUD_CONSUL_CONFIG_HEADERS_Authorization=Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4TEgyYXBXZ0RPRHM3YkFIVmpuX3BsaVc5cU9VNDBBQ3F6RWM2d1RReWZvIn0.eyJleHAiOjE3NDM3NzgzMTksImlhdCI6MTc0Mzc3ODAxOSwianRpIjoiM2FhN2YxN2QtYzFiZC00NjI1LWI1NzEtOTllZmRlZjQ5OTZmIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5hcHBmNC5pby52bi9yZWFsbXMvamhpcHN0ZXIiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiNGM5NzM4OTYtNTc2MS00MWZjLTgyMTctMDdjNWQxM2EwMDRiIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoid2ViX2FwcCIsInNpZCI6IjE4MDI4ZDUwLWIzNjEtNGQzYi04OTYxLWRiMjUyZmI5NDM0MSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovLzEyNy4wLjAuMTo4NzYxIiwiaHR0cHM6Ly9hcHBmNC5pby52bi8qIiwiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiaHR0cHM6Ly9jb25zdWwuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8vbXlzcWwuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8va2Fma2EuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8vcmVkaXMuYXBwZjQuaW8udm4vKiIsImh0dHA6Ly9sb2NhbGhvc3Q6ODEwMCIsImh0dHBzOi8va2FmZHJvcC5hcHBmNC5pby52bi8qIiwiaHR0cHM6Ly9sb2NhbGhvc3Q6ODA4MCJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiUk9MRV9VU0VSIiwib2ZmbGluZV9hY2Nlc3MiLCJST0xFX0FETUlOIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInJvbGVzIjpbIlJPTEVfVVNFUiIsIm9mZmxpbmVfYWNjZXNzIiwiUk9MRV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl0sIm5hbWUiOiJBZG1pbiBBZG1pbmlzdHJhdG9yIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWRtaW4iLCJnaXZlbl9uYW1lIjoiQWRtaW4iLCJmYW1pbHlfbmFtZSI6IkFkbWluaXN0cmF0b3IiLCJlbWFpbCI6ImFkbWluQGxvY2FsaG9zdCJ9.Ch4c_lVD5OnUHO3AbekAcLFyN9VxLchNwiSNlgI7hb6aHf49kETdhZcvEabO3n5Ipm2YQnTVKF5Ef-2gQcR_n6X44Li88ksd7ErKdu1qU9qqqBrBWvHvZigO9kFqW0lwo_tW7HebDe0pAt2DP51gP87GuyLRrrjvDuPxhz3yNziW8N0_jWjYaYrllIAQCP1AKe8eQ-mdimPFlBWHHXEIKe-0ldGZ2tLr6_RYZPZL767vtcsJNngsc5aC90aDlnThPWCQUauc92cbQXqR3PqeV3RYQa0HjBsmg8vtaBHFiOUJUiZqkELUxOZ5UrsvMiqxeTboxkIpFLhwf5rneuzPAg
+      - SPRING_CLOUD_CONSUL_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_CONFIG_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_DISCOVERY_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_TLS_SKIP_VERIFY=true
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=https://keycloak.appf4.io.vn/realms/jhipster
       - JHIPSTER_SECURITY_OAUTH2_AUTH_SERVER_URL=https://keycloak.appf4.io.vn
+      - SPRING_R2DBC_URL=r2dbc:mysql://mysql-apigateway:3306/apigateway
+      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-apigateway:3306/apigateway?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
+      - JHIPSTER_CACHE_REDIS_SERVER=redis://:Hiendepzaikhoaitonhatxom@appf4.io.vn:6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=appf4.io.vn:9092
+      - SPRING_KAFKA_SECURITY_PROTOCOL=SSL
+      - SPRING_KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=""
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/app/config/kafka.truststore.jks
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=f4security
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/app/config/kafka.keystore.jks
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=f4security
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=f4security
+    volumes:
+      - ./kafka/ssl/kafka.truststore.jks:/app/config/kafka.truststore.jks
+      - ./kafka/ssl/kafka.keystore.jks:/app/config/kafka.keystore.jks
     depends_on:
       mysql-apigateway:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
-      nginx:
-        condition: service_started
-    networks:
-      - f4_network
+
   msmedia:
     image: tuongtran1345/msmedia
+    ports:
+      - "9081:8081"
     environment:
       - JHIPSTER_APP_NAME=MsMediaApp
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-msmedia:3306/msmedia?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
-      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-msmedia:3306/msmedia?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
-      - JHIPSTER_CACHE_REDIS_SERVER=redis://redis:6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_CLOUD_CONSUL_ENABLED=true
+      - SPRING_CLOUD_CONSUL_HOST=consul.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_PORT=443
+      - SPRING_CLOUD_CONSUL_SCHEME=https
+      - SPRING_CLOUD_CONSUL_DISCOVERY_ENABLED=true
+      - SPRING_CLOUD_CONSUL_CONFIG_ENABLED=true
+      - SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED=true
+      - SPRING_CLOUD_CONSUL_DISCOVERY_SERVICE_NAME=msmedia
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONSUL_DISCOVERY_IP_ADDRESS=microservices.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_DISCOVERY_PORT=9081
+      - SPRING_CLOUD_CONSUL_CONFIG_HEADERS_Authorization=Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4TEgyYXBXZ0RPRHM3YkFIVmpuX3BsaVc5cU9VNDBBQ3F6RWM2d1RReWZvIn0.eyJleHAiOjE3NDM3NzgzMTksImlhdCI6MTc0Mzc3ODAxOSwianRpIjoiM2FhN2YxN2QtYzFiZC00NjI1LWI1NzEtOTllZmRlZjQ5OTZmIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5hcHBmNC5pby52bi9yZWFsbXMvamhpcHN0ZXIiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiNGM5NzM4OTYtNTc2MS00MWZjLTgyMTctMDdjNWQxM2EwMDRiIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoid2ViX2FwcCIsInNpZCI6IjE4MDI4ZDUwLWIzNjEtNGQzYi04OTYxLWRiMjUyZmI5NDM0MSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovLzEyNy4wLjAuMTo4NzYxIiwiaHR0cHM6Ly9hcHBmNC5pby52bi8qIiwiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiaHR0cHM6Ly9jb25zdWwuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8vbXlzcWwuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8va2Fma2EuYXBwZjQuaW8udm4vKiIsImh0dHBzOi8vcmVkaXMuYXBwZjQuaW8udm4vKiIsImh0dHA6Ly9sb2NhbGhvc3Q6ODEwMCIsImh0dHBzOi8va2FmZHJvcC5hcHBmNC5pby52bi8qIiwiaHR0cHM6Ly9sb2NhbGhvc3Q6ODA4MCJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiUk9MRV9VU0VSIiwib2ZmbGluZV9hY2Nlc3MiLCJST0xFX0FETUlOIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInJvbGVzIjpbIlJPTEVfVVNFUiIsIm9mZmxpbmVfYWNjZXNzIiwiUk9MRV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl0sIm5hbWUiOiJBZG1pbiBBZG1pbmlzdHJhdG9yIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWRtaW4iLCJnaXZlbl9uYW1lIjoiQWRtaW4iLCJmYW1pbHlfbmFtZSI6IkFkbWluaXN0cmF0b3IiLCJlbWFpbCI6ImFkbWluQGxvY2FsaG9zdCJ9.Ch4c_lVD5OnUHO3AbekAcLFyN9VxLchNwiSNlgI7hb6aHf49kETdhZcvEabO3n5Ipm2YQnTVKF5Ef-2gQcR_n6X44Li88ksd7ErKdu1qU9qqqBrBWvHvZigO9kFqW0lwo_tW7HebDe0pAt2DP51gP87GuyLRrrjvDuPxhz3yNziW8N0_jWjYaYrllIAQCP1AKe8eQ-mdimPFlBWHHXEIKe-0ldGZ2tLr6_RYZPZL767vtcsJNngsc5aC90aDlnThPWCQUauc92cbQXqR3PqeV3RYQa0HjBsmg8vtaBHFiOUJUiZqkELUxOZ5UrsvMiqxeTboxkIpFLhwf5rneuzPAg
+      - SPRING_CLOUD_CONSUL_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_CONFIG_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_DISCOVERY_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
+      - SPRING_CLOUD_CONSUL_TLS_SKIP_VERIFY=true
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=https://keycloak.appf4.io.vn/realms/jhipster
       - JHIPSTER_SECURITY_OAUTH2_AUTH_SERVER_URL=https://keycloak.appf4.io.vn
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-msmedia:3306/msmedia?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
+      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-msmedia:3306/msmedia?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
+      - JHIPSTER_CACHE_REDIS_SERVER=redis://:Hiendepzaikhoaitonhatxom@appf4.io.vn:6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=appf4.io.vn:9092
+      - SPRING_KAFKA_SECURITY_PROTOCOL=SSL
+      - SPRING_KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=""
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/app/config/kafka.truststore.jks
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=f4security
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/app/config/kafka.keystore.jks
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=f4security
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=f4security
+    volumes:
+      - ./kafka/ssl/kafka.truststore.jks:/app/config/kafka.truststore.jks
+      - ./kafka/ssl/kafka.keystore.jks:/app/config/kafka.keystore.jks
     depends_on:
       mysql-msmedia:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
-      consul:
-        condition: service_started
-      nginx:
-        condition: service_started
-    networks:
-      - f4_network
-  jenkins:
-    image: jenkins/jenkins:lts-jdk17
-    container_name: jenkins-lite
-    user: "root" # Run as Jenkins user to match folder permissions
-    volumes:
-      - ./jenkins_home:/var/jenkins_home
-      - /root/docker-compose/docker-compose:/var/jenkins_home/project # Corrected mount
-      - /var/run/docker.sock:/var/run/docker.sock # Allow Jenkins to control Docker
-      - /usr/bin/docker:/usr/bin/docker # Provides the Docker CLI
-    environment:
-      - JAVA_OPTS=-Xms512m -Xmx1024m
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-    networks:
-      - f4_network
-volumes:
-  jenkins_home:
