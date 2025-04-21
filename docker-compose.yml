@@ -1,37 +1,37 @@
 name: dev
 services:
-  # Include MySQL databases
+  # Include Nginx
+  nginx:
+    extends:
+      file: docker/nginx.yml
+      service: nginx
 
-  mysql-msmedia:
+  # Include MySQL databases
+  mysql-user:
     extends:
       file: docker/databases.yml
-      service: mysql-msmedia
+      service: mysql-user
 
   mysql-msreels:
     extends:
       file: docker/databases.yml
       service: mysql-msreels
-
+  mysql-likeComment:
+    extends:
+      file: docker/databases.yml
+      service: mysql-likeComment            
+  mysql-notification:
+    extends:
+      file: docker/databases.yml
+      service: mysql-notification
   # Include API Gateway
   apigateway:
     extends:
       file: docker/apigateway.yml
       service: apigateway
 
-  # Include MsMedia service
-  msmedia:
-    extends:
-      file: docker/msmedia.yml
-      service: msmedia
-
   # Include MsReels service
   msreels:
     extends:
       file: docker/msreels.yml
       service: msreels
-
-  # Include Nginx
-  nginx:
-    extends:
-      file: docker/nginx.yml
-      service: nginx

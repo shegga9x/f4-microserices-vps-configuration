@@ -1,22 +1,21 @@
 name: dev
 services:
-
-  mysql-msmedia:
+  mysql-user:
     extends:
       file: ./mysql.yml
       service: mysql
     volumes:
-      - ../src/data/mysql-msmedia:/var/lib/mysql
+      - ../src/data/mysql-user:/var/lib/mysql
     ports:
-      - "3307:3306"
+      - "3306:3306"
     environment:
-      MYSQL_DATABASE: msmedia
+      MYSQL_DATABASE: user
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
       timeout: 10s
-      retries: 10
-  
+      retries: 10 
+ 
   mysql-msreels:
     extends:
       file: ./mysql.yml
@@ -32,3 +31,36 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10 
+
+  mysql-likeComment:
+    extends:
+      file: ./mysql.yml
+      service: mysql
+    volumes:
+      - ../src/data/mysql-likeComment:/var/lib/mysql
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_DATABASE: likeComment
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10 
+
+  mysql-notification:
+    extends:
+      file: ./mysql.yml
+      service: mysql
+    volumes:
+      - ../src/data/mysql-notification:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: notification
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10 
+
