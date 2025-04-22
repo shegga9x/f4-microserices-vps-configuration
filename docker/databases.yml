@@ -7,7 +7,7 @@ services:
     volumes:
       - ../src/data/mysql-user:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3381:3306"
     environment:
       MYSQL_DATABASE: user
     healthcheck:
@@ -23,7 +23,7 @@ services:
     volumes:
       - ../src/data/mysql-msreels:/var/lib/mysql
     ports:
-      - "3308:3306"
+      - "3382:3306"
     environment:
       MYSQL_DATABASE: msreels
     healthcheck:
@@ -32,16 +32,16 @@ services:
       timeout: 10s
       retries: 10 
 
-  mysql-likeComment:
+  mysql-commentlike:
     extends:
       file: ./mysql.yml
       service: mysql
     volumes:
-      - ../src/data/mysql-likeComment:/var/lib/mysql
+      - ../src/data/mysql-commentlike:/var/lib/mysql
     ports:
-      - "3309:3306"
+      - "3385:3306"
     environment:
-      MYSQL_DATABASE: likeComment
+      MYSQL_DATABASE: commentlike
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
@@ -55,7 +55,7 @@ services:
     volumes:
       - ../src/data/mysql-notification:/var/lib/mysql
     ports:
-      - "3307:3306"
+      - "3383:3306"
     environment:
       MYSQL_DATABASE: notification
     healthcheck:
@@ -63,4 +63,20 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10 
+
+  mysql-feed:
+    extends:
+      file: ./mysql.yml
+      service: mysql
+    volumes:
+      - ../src/data/mysql-feed:/var/lib/mysql
+    ports:
+      - "3384:3306"
+    environment:
+      MYSQL_DATABASE: feed
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
