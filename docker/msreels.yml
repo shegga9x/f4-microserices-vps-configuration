@@ -1,7 +1,7 @@
 name: dev
 services:
   msreels:
-    image: shegga/msreels
+    image: shegga/ms_reel
     environment:
       - JHIPSTER_APP_NAME=MsReelsApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
@@ -49,9 +49,15 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET_NAME=pexels-images
+      # Elasticsearch Configuration
+      - SPRING_ELASTICSEARCH_URIS=http://appf4.io.vn:9200
+      - SPRING_ELASTICSEARCH_USERNAME=elastic
+      - SPRING_ELASTICSEARCH_PASSWORD=admin
+      
     volumes:
       - ../kafka/ssl/kafka.truststore.jks:/app/config/kafka.truststore.jks
       - ../kafka/ssl/kafka.keystore.jks:/app/config/kafka.keystore.jks
     depends_on:
       mysql-msreels:
-        condition: service_healthy 
+        condition: service_healthy
+

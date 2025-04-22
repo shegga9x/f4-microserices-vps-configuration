@@ -1,7 +1,7 @@
 name: dev
 services:
   apigateway:
-    image: shegga/apigateway:latest
+    image: shegga/gateway:latest
     environment:
       - JHIPSTER_APP_NAME=ApiGateway
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
