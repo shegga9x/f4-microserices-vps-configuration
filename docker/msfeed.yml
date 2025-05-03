@@ -48,6 +48,30 @@ services:
       - SPRING_ELASTICSEARCH_URIS=http://appf4.io.vn:9200
       - SPRING_ELASTICSEARCH_USERNAME=elastic
       - SPRING_ELASTICSEARCH_PASSWORD=admin
+
+      # ──────────────────────────────────────────────────────────────────────
+      # Core Spring Cloud Stream settings
+      # ──────────────────────────────────────────────────────────────────────
+      - SPRING_CLOUD_STREAM_DEFAULT_BINDER=kafka
+      - SPRING_CLOUD_STREAM_FUNCTION_DEFINITION=input;output
+      # ──────────────────────────────────────────────────────────────────────
+      # Per-binding Kafka overrides (consumer + producer tweaks)
+      # ──────────────────────────────────────────────────────────────────────
+      - SPRING_CLOUD_STREAM_KAFKA_BINDINGS_KAFKACONSUMER_IN_0_CONSUMER_AUTO_COMMIT_OFFSET=true
+      - SPRING_CLOUD_STREAM_KAFKA_BINDINGS_KAFKACONSUMER_IN_0_CONSUMER_START_OFFSET=latest
+      - SPRING_CLOUD_STREAM_KAFKA_BINDINGS_KAFKACONSUMER_IN_0_CONSUMER_ENABLE_DLQ=true
+      - SPRING_CLOUD_STREAM_KAFKA_BINDINGS_KAFKAPRODUCER_OUT_0_PRODUCER_SYNC=false
+      - SPRING_CLOUD_STREAM_KAFKA_BINDINGS_KAFKAPRODUCER_OUT_0_PRODUCER_BUFFER_SIZE=16384
+      # ──────────────────────────────────────────────────────────────────────
+      # Logical bindings (beanName-in-0 → topic, group, contentType)
+      # ──────────────────────────────────────────────────────────────────────
+      - SPRING_CLOUD_STREAM_BINDINGS_KAFKACONSUMER_IN_0_DESTINATION=msfeed-input
+      - SPRING_CLOUD_STREAM_BINDINGS_KAFKACONSUMER_IN_0_GROUP=msfeed
+      - SPRING_CLOUD_STREAM_BINDINGS_KAFKACONSUMER_IN_0_CONTENT_TYPE=application/json
+      - SPRING_CLOUD_STREAM_BINDINGS_KAFKAPRODUCER_OUT_0_DESTINATION=msfeed-output
+      - SPRING_CLOUD_STREAM_BINDINGS_KAFKAPRODUCER_OUT_0_CONTENT_TYPE=application/json
+
+
     volumes:
       - ../kafka/ssl/kafka.truststore.jks:/app/config/kafka.truststore.jks
       - ../kafka/ssl/kafka.keystore.jks:/app/config/kafka.keystore.jks
