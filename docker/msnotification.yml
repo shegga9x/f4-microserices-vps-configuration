@@ -9,7 +9,7 @@ services:
 
       - MANAGEMENT_ENDPOINTS_WEB_BASE_PATH=/management
       - SPRING_CLOUD_CONSUL_ENABLED=true
-      - SPRING_CLOUD_CONSUL_HOST=consul.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_HOST=consul. appf4s.io.vn
       - SPRING_CLOUD_CONSUL_PORT=443
       - SPRING_CLOUD_CONSUL_SCHEME=https
       - SPRING_CLOUD_CONSUL_DISCOVERY_ENABLED=true
@@ -17,7 +17,7 @@ services:
       - SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED=true
       - SPRING_CLOUD_CONSUL_DISCOVERY_SERVICE_NAME=msnotification
       - SPRING_CLOUD_CONSUL_DISCOVERY_PREFER_IP_ADDRESS=true
-      - SPRING_CLOUD_CONSUL_DISCOVERY_IP_ADDRESS=msnotification.appf4.io.vn
+      - SPRING_CLOUD_CONSUL_DISCOVERY_IP_ADDRESS=msnotification. appf4s.io.vn
       - SPRING_CLOUD_CONSUL_DISCOVERY_PORT=443
       - SPRING_CLOUD_CONSUL_DISCOVERY_INSTANCE_ID=msnotification
       - SPRING_CLOUD_CONSUL_DISCOVERY_TAGS=urlprefix-/
@@ -31,12 +31,12 @@ services:
       - SPRING_CLOUD_CONSUL_CONFIG_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
       - SPRING_CLOUD_CONSUL_DISCOVERY_ACL_TOKEN=${CONSUL_HTTP_TOKEN:-}
       - SPRING_CLOUD_CONSUL_TLS_SKIP_VERIFY=true
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=https://keycloak.appf4.io.vn/realms/jhipster
-      - JHIPSTER_SECURITY_OAUTH2_AUTH_SERVER_URL=https://keycloak.appf4.io.vn
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=https://keycloak. appf4s.io.vn/realms/jhipster
+      - JHIPSTER_SECURITY_OAUTH2_AUTH_SERVER_URL=https://keycloak. appf4s.io.vn
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-notification:3306/notification?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
       - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql-notification:3306/notification?useUnicode=true&characterEncoding=utf8&useSSL=false&createDatabaseIfNotExist=true
-      - JHIPSTER_CACHE_REDIS_SERVER=redis://:Hiendepzaikhoaitonhatxom@appf4.io.vn:6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=appf4.io.vn:9092
+      - JHIPSTER_CACHE_REDIS_SERVER=redis://:Hiendepzaikhoaitonhatxom@ appf4s.io.vn:6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS= appf4s.io.vn:9092
       - SPRING_KAFKA_SECURITY_PROTOCOL=SSL
       - SPRING_KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=""
       - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/app/config/kafka.truststore.jks

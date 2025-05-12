@@ -19,7 +19,7 @@ This document describes the Nginx reverse proxy configuration for the F4 microse
 ### SSL/HTTPS
 - All HTTP traffic (port 80) is automatically redirected to HTTPS (port 443)
 - SSL certificates are managed through Let's Encrypt
-- Certificate path: `/etc/letsencrypt/live/microservices.appf4.io.vn/`
+- Certificate path: `/etc/letsencrypt/live/microservices. appf4s.io.vn/`
 
 ### Common Headers
 All proxied requests include:
@@ -45,18 +45,18 @@ Each service's API is accessible through:
 ## URL Structure
 
 ### Health Check URLs
-- MSReels: `https://microservices.appf4.io.vn/msreels/management/health`
-- MSUser: `https://microservices.appf4.io.vn/msuser/management/health`
-- MSCommentLike: `https://microservices.appf4.io.vn/mscommentlike/management/health`
-- MSNotification: `https://microservices.appf4.io.vn/msnotification/management/health`
-- MSFeed: `https://microservices.appf4.io.vn/msfeed/management/health`
+- MSReels: `https://microservices. appf4s.io.vn/msreels/management/health`
+- MSUser: `https://microservices. appf4s.io.vn/msuser/management/health`
+- MSCommentLike: `https://microservices. appf4s.io.vn/mscommentlike/management/health`
+- MSNotification: `https://microservices. appf4s.io.vn/msnotification/management/health`
+- MSFeed: `https://microservices. appf4s.io.vn/msfeed/management/health`
 
 ### API URLs
-- MSReels: `https://microservices.appf4.io.vn/services/msreels/api/*`
-- MSUser: `https://microservices.appf4.io.vn/services/msuser/api/*`
-- MSCommentLike: `https://microservices.appf4.io.vn/services/mscommentlike/api/*`
-- MSNotification: `https://microservices.appf4.io.vn/services/msnotification/api/*`
-- MSFeed: `https://microservices.appf4.io.vn/services/msfeed/api/*`
+- MSReels: `https://microservices. appf4s.io.vn/services/msreels/api/*`
+- MSUser: `https://microservices. appf4s.io.vn/services/msuser/api/*`
+- MSCommentLike: `https://microservices. appf4s.io.vn/services/mscommentlike/api/*`
+- MSNotification: `https://microservices. appf4s.io.vn/services/msnotification/api/*`
+- MSFeed: `https://microservices. appf4s.io.vn/services/msfeed/api/*`
 
 ## Security Features
 1. HTTPS enforcement
