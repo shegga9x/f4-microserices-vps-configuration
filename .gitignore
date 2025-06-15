@@ -1,2 +1,4 @@
 jenkins_home/
 src/*
+nginx/log/
+nginx/letsencrypt/
