@@ -10,6 +10,7 @@ services:
       - "3381:3306"
     environment:
       MYSQL_DATABASE: user
+    command: --local-infile=1 --lower_case_table_names=1
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
@@ -26,6 +27,7 @@ services:
       - "3382:3306"
     environment:
       MYSQL_DATABASE: msreels
+    command: --local-infile=1 --lower_case_table_names=1
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
@@ -42,6 +44,7 @@ services:
       - "3385:3306"
     environment:
       MYSQL_DATABASE: commentlike
+    command: --local-infile=1 --lower_case_table_names=1
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
@@ -74,6 +77,7 @@ services:
       - "3384:3306"
     environment:
       MYSQL_DATABASE: feed
+    command: --local-infile=1 --lower_case_table_names=1
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]
       interval: 5s
