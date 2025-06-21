@@ -6,7 +6,7 @@ docker run --rm -p 80:80 -p 443:443 \
   -d msnotification.appf4.io.vn \
   -d mscommentlike.appf4.io.vn \
   -d msfeed.appf4.io.vn \
-  -d msreels.appf4.io.vn \
+  -d msreel.appf4.io.vn \
   --email shegga9x@gmail.com --agree-tos --non-interactive --no-eff-email
 
 

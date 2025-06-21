@@ -10,10 +10,10 @@ services:
     extends:
       file: docker/databases.yml
       service: mysql-user
-  mysql-msreels:
+  mysql-msreel:
     extends:
       file: docker/databases.yml
-      service: mysql-msreels
+      service: mysql-msreel
   mysql-commentlike:
     extends:
       file: docker/databases.yml
@@ -31,11 +31,11 @@ services:
     extends:
       file: docker/apigateway.yml
       service: apigateway
-  # Include MsReels service
-  msreels:
+  # Include msreel service
+  msreel:
     extends:
-      file: docker/msreels.yml
-      service: msreels
+      file: docker/msreel.yml
+      service: msreel
   msuser:
     extends:
       file: docker/msuser.yml

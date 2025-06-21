@@ -1,7 +1,7 @@
 name: dev
 services:
   mscommentlike:
-    image: shegga/ms_commentlike:latest
+    image: ms_commentlike
     environment:
       - JHIPSTER_APP_NAME=MsCommentLikeApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m

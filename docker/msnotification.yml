@@ -1,7 +1,7 @@
 name: dev
 services:
   msnotification:
-    image: shegga/ms_notification:latest
+    image: ms_notification
     environment:
       - JHIPSTER_APP_NAME=MsNotificationApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m

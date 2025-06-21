@@ -1,7 +1,7 @@
 name: dev
 services:
   msuser:
-    image: shegga/ms_user:latest
+    image: ms_user
     environment:
       - JHIPSTER_APP_NAME=MsUserApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m

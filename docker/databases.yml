@@ -17,16 +17,16 @@ services:
       timeout: 10s
       retries: 10 
  
-  mysql-msreels:
+  mysql-msreel:
     extends:
       file: ./mysql.yml
       service: mysql
     volumes:
-      - ../src/data/mysql-msreels:/var/lib/mysql
+      - ../src/data/mysql-msreel:/var/lib/mysql
     ports:
       - "3382:3306"
     environment:
-      MYSQL_DATABASE: msreels
+      MYSQL_DATABASE: reel
     command: --local-infile=1 --lower_case_table_names=1
     healthcheck:
       test: [ "CMD-SHELL", "mysql -e 'SHOW DATABASES;' && sleep 5" ]

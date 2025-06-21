@@ -8,7 +8,7 @@ This document describes the Nginx reverse proxy configuration for the F4 microse
 | Service         | Internal Port | Health Check Endpoint              |
 |----------------|---------------|-----------------------------------|
 | API Gateway    | 8080          | /                                |
-| MSReels        | 8082          | /msreels/management/health       |
+| msreel        | 8082          | /msreel/management/health       |
 | MSUser         | 8081          | /msuser/management/health        |
 | MSCommentLike  | 8085          | /mscommentlike/management/health |
 | MSNotification | 8083          | /msnotification/management/health|
@@ -45,14 +45,14 @@ Each service's API is accessible through:
 ## URL Structure
 
 ### Health Check URLs
-- MSReels: `https://microservices.appf4.io.vn/msreels/management/health`
+- msreel: `https://microservices.appf4.io.vn/msreel/management/health`
 - MSUser: `https://microservices.appf4.io.vn/msuser/management/health`
 - MSCommentLike: `https://microservices.appf4.io.vn/mscommentlike/management/health`
 - MSNotification: `https://microservices.appf4.io.vn/msnotification/management/health`
 - MSFeed: `https://microservices.appf4.io.vn/msfeed/management/health`
 
 ### API URLs
-- MSReels: `https://microservices.appf4.io.vn/services/msreels/api/*`
+- msreel: `https://microservices.appf4.io.vn/services/msreel/api/*`
 - MSUser: `https://microservices.appf4.io.vn/services/msuser/api/*`
 - MSCommentLike: `https://microservices.appf4.io.vn/services/mscommentlike/api/*`
 - MSNotification: `https://microservices.appf4.io.vn/services/msnotification/api/*`

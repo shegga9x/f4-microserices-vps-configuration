@@ -1,7 +1,7 @@
 name: dev
 services:
   msfeed:
-    image: shegga/ms_feed:latest
+    image: ms_feed
     environment:
       - JHIPSTER_APP_NAME=MsFeedApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
