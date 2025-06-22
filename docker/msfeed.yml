@@ -3,6 +3,7 @@ services:
   msfeed:
     image: ms_feed
     environment:
+      - SSH_SERVICE_NAME=feed
       - JHIPSTER_APP_NAME=MsFeedApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs

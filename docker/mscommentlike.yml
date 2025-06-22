@@ -3,6 +3,7 @@ services:
   mscommentlike:
     image: ms_commentlike
     environment:
+      - SSH_SERVICE_NAME=commentlike
       - JHIPSTER_APP_NAME=MsCommentLikeApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs

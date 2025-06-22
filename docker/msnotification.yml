@@ -3,10 +3,10 @@ services:
   msnotification:
     image: ms_notification
     environment:
+      - SSH_SERVICE_NAME=notification
       - JHIPSTER_APP_NAME=MsNotificationApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs
-
       - MANAGEMENT_ENDPOINTS_WEB_BASE_PATH=/management
       - SPRING_CLOUD_CONSUL_ENABLED=true
       - SPRING_CLOUD_CONSUL_HOST=consul.appf4.io.vn
@@ -44,7 +44,9 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/app/config/kafka.keystore.jks
       - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=f4security
       - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=f4security 
-
+      - SPRING_JPA_PROPERTIES_HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE=false
+      - SPRING_JPA_PROPERTIES_HIBERNATE_CACHE_USE_QUERY_CACHE=false
+      - SPRING_JPA_PROPERTIES_HIBERNATE_CACHE_REGION_FACTORY_CLASS=org.hibernate.cache.internal.NoCachingRegionFactory
             # ──────────────────────────────────────────────────────────────────────
       # Core Spring Cloud Stream settings
       # ──────────────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ services:
   msreel:
     image: ms_reel
     environment:
+      - SSH_SERVICE_NAME=reel
       - JHIPSTER_APP_NAME=msreelApp
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=dev,api-docs
