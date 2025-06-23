@@ -27,7 +27,7 @@ services:
       file: docker/databases.yml
       service: mysql-feed
   # Include API Gateway
-  msgateway:
+  gateway:
     extends:
       file: docker/apigateway.yml
       service: apigateway
