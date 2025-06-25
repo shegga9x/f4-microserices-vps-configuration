@@ -68,6 +68,10 @@ services:
       - SPRING_CLOUD_STREAM_BINDINGS_KAFKAPRODUCER_OUT_0_DESTINATION=mscommentlike-output
       - SPRING_CLOUD_STREAM_BINDINGS_KAFKAPRODUCER_OUT_0_CONTENT_TYPE=application/json
       - JAVA_OPTS=-Dspring.liquibase.parameters.csv_path=/config/data
+            # Elasticsearch Configuration
+      - SPRING_ELASTICSEARCH_URIS=http://appf4.io.vn:9200
+      - SPRING_ELASTICSEARCH_USERNAME=elastic
+      - SPRING_ELASTICSEARCH_PASSWORD=admin
     volumes:
       - ../AppF4/backend/data:/config/data:ro       
       - ../kafka/ssl/kafka.truststore.jks:/app/config/kafka.truststore.jks
